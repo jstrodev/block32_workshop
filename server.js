@@ -2,31 +2,27 @@ const express = require("express");
 const app = express();
 const PORT = 3000;
 
+// IMPORTANT: This middleware must come before routes
+app.use(express.json());
+
 app.get("/", (req, res) => {
   res.send("Hello employees!");
 });
 
-const employees = require("./employees");
+// Make sure this path matches your actual file location
+const employeesRouter = require('./routes/employees');
+app.use('/employees', employeesRouter);
 
-app.get("/employees", (req, res) => {
-  res.json(employees);
+// Error handlers
+app.use((req, res, next) => {
+  res.status(404).send('Not Found');
 });
 
-app.get("/employees/random", (req, res) => {
-  const i = Math.floor(Math.random() * employees.length);
-  res.json(employees[i]);
-});
-
-app.get("/employees/:id", (req, res) => {
-  const { id } = req.params;
-  const employee = employees.find((e) => e.id === +id);
-  if (employee) {
-    res.json(employee);
-  } else {
-    res.status(404).send(`There is no employee with id ${id}.`);
-  }
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
 });
 
 app.listen(PORT, () => {
-  `Listening on port ${PORT}...`;
+  console.log(`Listening on port ${PORT}...`);
 });
